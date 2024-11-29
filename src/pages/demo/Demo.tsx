@@ -1,30 +1,46 @@
-import { useContext } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import {
   Box,
+  CircularProgress,
   Collapse,
   IconButton,
   List,
   ListItem,
   Typography,
 } from '@mui/material';
-import { DemoContext, DepoProvider } from '../../context/DemoContext';
-import { ModalContext } from '../../context/ModalContext';
+import { DemoContext, ModalContext, TModalProps } from '../../context';
+import { DepoProvider } from '../../context/DemoContext';
 import { useToggle } from '../../hooks/useToggle';
+import { useQuery } from '@tanstack/react-query';
 import { ITreeNode, EModal } from '../../types';
-
-import ExpandLess from '@mui/icons-material/ExpandLess';
-import ExpandMore from '@mui/icons-material/ExpandMore';
+import { getTree } from '../../services';
 
 import AddCircleOutlineRoundedIcon from '@mui/icons-material/AddCircleOutlineRounded';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 
+import ExpandLess from '@mui/icons-material/ExpandLess';
+import ExpandMore from '@mui/icons-material/ExpandMore';
+
 export default function Demo() {
-  const list = [{ id: 1, name: 'Root', children: [] }];
+  const [list, setList] = useState<ITreeNode[]>([]);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['tree'],
+    queryFn: getTree,
+  });
+
+  useEffect(() => {
+    if (isLoading) return;
+    if (data) {
+      const modif_data = [{ ...data, name: 'Root' }];
+      setList(modif_data);
+    }
+  }, [isLoading, data]);
 
   return (
     <DepoProvider>
-      <CustomTree data={list} />
+      {isLoading ? <CircularProgress size={20} /> : <CustomTree data={list} />}
     </DepoProvider>
   );
 }
@@ -41,20 +57,26 @@ const CustomTree = ({ data }: { data: ITreeNode[] }) => {
 
 const TreeNode = ({ node }: { node: ITreeNode }) => {
   const { handleModal } = useContext(ModalContext);
+
+  // use Demo Context to prevent multiple props passing
   const { nodeId, setNodeId } = useContext(DemoContext);
 
   const [expanded, toggle] = useToggle();
 
   const onExpand = (e: React.MouseEvent<HTMLLIElement, MouseEvent>) => {
     e.stopPropagation();
+
     setNodeId(node.id);
+
+    if (!node?.children?.length) return;
+
     toggle();
   };
 
   const onEdit = (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
     modal: EModal,
-    modal_props?: string,
+    modal_props?: TModalProps,
   ) => {
     e.stopPropagation();
     handleModal(modal, modal_props);
@@ -69,7 +91,7 @@ const TreeNode = ({ node }: { node: ITreeNode }) => {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'flex-start',
-        padding: node.id === 1 ? 0 : '0 15px',
+        padding: isRoot ? 0 : '0 15px',
       }}
     >
       <Box display="flex" alignItems="center">
@@ -84,7 +106,11 @@ const TreeNode = ({ node }: { node: ITreeNode }) => {
           {nodeId === node.id && (
             <>
               <IconButton
-                onClick={(e) => onEdit(e, EModal.CREATE_NODE)}
+                onClick={(e) =>
+                  onEdit(e, EModal.CREATE_NODE, {
+                    parentNodeId: node.id,
+                  })
+                }
                 sx={{ p: 0 }}
               >
                 <AddCircleOutlineRoundedIcon color="primary" />
@@ -93,13 +119,24 @@ const TreeNode = ({ node }: { node: ITreeNode }) => {
               {!isRoot && (
                 <>
                   <IconButton
-                    onClick={(e) => onEdit(e, EModal.REMANE_NODE)}
+                    onClick={(e) =>
+                      onEdit(e, EModal.REMANE_NODE, {
+                        nodeId: node.id,
+                        nodeName: node.name,
+                      })
+                    }
                     sx={{ p: 0 }}
                   >
                     <EditOutlinedIcon color="primary" />
                   </IconButton>
+
                   <IconButton
-                    onClick={(e) => onEdit(e, EModal.DELETE_NODE, node.name)}
+                    onClick={(e) =>
+                      onEdit(e, EModal.DELETE_NODE, {
+                        nodeId: node.id,
+                        nodeName: node.name,
+                      })
+                    }
                     sx={{ p: 0 }}
                   >
                     <DeleteOutlineOutlinedIcon color="error" />

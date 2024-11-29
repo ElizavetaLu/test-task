@@ -1,10 +1,30 @@
-import { Box, TextField, Typography } from '@mui/material';
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
+import { Box, CircularProgress, TextField, Typography } from '@mui/material';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { IRenameNodeParams } from '../../types/api';
+import { renameTreeNode } from '../../services';
 import { Button } from '../Button';
-import { ModalContext } from '../../context/ModalContext';
+import { ModalContext } from '../../context';
 
 export const RenameTreeNode = () => {
-  const { handleModal } = useContext(ModalContext);
+  const { modal_props, handleModal } = useContext(ModalContext);
+
+  const [name, setName] = useState(modal_props?.nodeName || '');
+
+  const queryClient = useQueryClient();
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: renameTreeNode,
+    onSuccess: () => {
+      handleModal(null);
+      queryClient.invalidateQueries({ queryKey: ['tree'] });
+    },
+  });
+
+  const handleRenameNode = async (params: IRenameNodeParams) => {
+    if (!name.trim() || !params.nodeId) return;
+    mutate(params);
+  };
 
   return (
     <Box>
@@ -13,7 +33,13 @@ export const RenameTreeNode = () => {
       </Typography>
 
       <Box marginY={5}>
-        <TextField label="New node name" variant="outlined" fullWidth />
+        <TextField
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          label="New node name"
+          variant="outlined"
+          fullWidth
+        />
       </Box>
 
       <Box display="flex" justifySelf="end" gap={1}>
@@ -23,7 +49,19 @@ export const RenameTreeNode = () => {
         >
           cancel
         </Button>
-        <Button sx={{ bgcolor: '#3f51b5', color: '#fff' }}>rename</Button>
+        <Button
+          onClick={() =>
+            handleRenameNode({
+              nodeId: modal_props?.nodeId || 0,
+              newNodeName: name,
+            })
+          }
+          sx={{ bgcolor: '#3f51b5', color: '#fff' }}
+          disabled={!name.trim() || isPending}
+        >
+          rename
+          {isPending && <CircularProgress size={18} color="inherit" />}
+        </Button>
       </Box>
     </Box>
   );
