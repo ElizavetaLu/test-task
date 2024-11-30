@@ -3,6 +3,8 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import ReplyRoundedIcon from '@mui/icons-material/ReplyRounded';
 import { Box, Button, Typography } from '@mui/material';
 
+const user = 'Guest';
+
 export const Header = () => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -33,7 +35,7 @@ export const Header = () => {
       height={60}
       borderBottom={1}
     >
-      <Box display="flex" gap={3}>
+      <Box display="flex" alignItems="center" gap={3}>
         <Button
           onClick={() => navigate(-1)}
           disabled={pathname === '/user/demo'}
@@ -47,14 +49,18 @@ export const Header = () => {
           <ReplyRoundedIcon />
           Back
         </Button>
-        <Typography component="h1" fontSize={24}>
+        <Typography component="h1" fontSize={{ xs: 20, sm: 24 }}>
           {header_title}
         </Typography>
       </Box>
 
       <Box display="flex" alignItems="center" gap={1}>
-        <Typography component="h2" fontSize={20}>
-          user name
+        <Typography
+          component="h2"
+          fontSize={20}
+          display={{ xs: 'none', sm: 'block' }}
+        >
+          {user}
         </Typography>
         <Box
           width={45}
@@ -67,7 +73,7 @@ export const Header = () => {
           color="#fff"
           fontSize={26}
         >
-          U
+          {user[0]}
         </Box>
       </Box>
     </Box>

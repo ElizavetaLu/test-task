@@ -1,10 +1,10 @@
 import { useContext } from 'react';
-import { Box, Modal } from '@mui/material';
-import { ModalContext } from '../../context/ModalContext';
+import { Box, Modal } from '@mui/material'; 
 import { EModal } from '../../types/index';
 import { CreateTreeNode } from './CreateTreeNode';
 import { RenameTreeNode } from './RenameTreeNode';
 import { DeleteTreeNode } from './DeleteTreeNode';
+import { ModalContext } from '../../context';
 
 export const ModalContainer = () => {
   const { modal, handleModal } = useContext(ModalContext);
