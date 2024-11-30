@@ -18,7 +18,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getJournal } from '../../services';
 import { DatePicker } from '../../components/DatePicker';
 import dayjs, { Dayjs } from 'dayjs';
-import { IJournalField } from '../../types/api';
+import { IJournalData } from '../../types/api';
 
 export default function Journal() {
   const [from, setFrom] = useState<string>('');
@@ -39,7 +39,7 @@ export default function Journal() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  const [rows, setRows] = useState<IJournalField[]>([]);
+  const [journal_data, setJournalData] = useState<IJournalData>();
 
   const { data, isLoading } = useQuery({
     queryKey: ['journal', page, rowsPerPage, from, to, debouncedValue],
@@ -57,7 +57,7 @@ export default function Journal() {
 
   useEffect(() => {
     if (isLoading) return;
-    if (data?.items) setRows(data.items);
+    if (data) setJournalData(data);
   }, [isLoading, data]);
 
   return (
@@ -135,7 +135,7 @@ export default function Journal() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {rows.map((row) => (
+              {journal_data?.items?.map((row) => (
                 <TableRow key={row.id}>
                   <TableCell align="right" sx={{ p: '5px 10px' }}>
                     {row.id}
@@ -160,7 +160,7 @@ export default function Journal() {
         <TablePagination
           rowsPerPageOptions={[10, 25, 50, 100]}
           component="div"
-          count={data?.count || 0}
+          count={journal_data?.count || 0}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={(_, newPage) => setPage(newPage)}

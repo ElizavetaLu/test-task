@@ -1,5 +1,11 @@
-import { Box } from '@mui/material';
+import { Box, Link } from '@mui/material';
 
 export default function API() {
-  return <Box>API</Box>;
+  return (
+    <Box>
+      <Link href="https://test.vmarmysh.com/swagger/user.html" target="_blank">
+        API
+      </Link>
+    </Box>
+  );
 }

@@ -8,6 +8,7 @@ import { ModalContext } from '../../context';
 
 export const RenameTreeNode = () => {
   const { modal_props, handleModal } = useContext(ModalContext);
+  const [error, setError] = useState('');
 
   const [name, setName] = useState(modal_props?.nodeName || '');
 
@@ -15,6 +16,11 @@ export const RenameTreeNode = () => {
 
   const { mutate, isPending } = useMutation({
     mutationFn: renameTreeNode,
+    onError: (error: any) => {
+      const err_msg = error?.response?.data?.data?.message;
+
+      setError(err_msg || 'Something went wrong');
+    },
     onSuccess: () => {
       handleModal(null);
       queryClient.invalidateQueries({ queryKey: ['tree'] });
@@ -31,6 +37,12 @@ export const RenameTreeNode = () => {
       <Typography component="h3" textAlign="center" fontSize={20}>
         Rename
       </Typography>
+
+      {error && (
+        <Typography color="error.main" textAlign="center">
+          {error}
+        </Typography>
+      )}
 
       <Box marginY={5}>
         <TextField

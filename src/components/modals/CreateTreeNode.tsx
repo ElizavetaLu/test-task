@@ -8,6 +8,7 @@ import { Button } from '../Button';
 
 export const CreateTreeNode = () => {
   const { modal_props, handleModal } = useContext(ModalContext);
+  const [error, setError] = useState('');
 
   const [name, setName] = useState('');
 
@@ -15,6 +16,11 @@ export const CreateTreeNode = () => {
 
   const { mutate, isPending } = useMutation({
     mutationFn: createTreeNode,
+    onError: (error: any) => {
+      const err_msg = error?.response?.data?.data?.message;
+
+      setError(err_msg || 'Something went wrong');
+    },
     onSuccess: () => {
       handleModal(null);
       queryClient.invalidateQueries({ queryKey: ['tree'] });
@@ -22,7 +28,8 @@ export const CreateTreeNode = () => {
   });
 
   const handleCreateNode = (params: ICreateNodeParams) => {
-    if (!name.trim() || modal_props?.parentNodeId) return;
+    if (!name.trim() || !modal_props?.parentNodeId) return;
+
     mutate(params);
   };
 
@@ -31,6 +38,12 @@ export const CreateTreeNode = () => {
       <Typography component="h3" textAlign="center" fontSize={20}>
         Add
       </Typography>
+
+      {error && (
+        <Typography color="error.main" textAlign="center">
+          {error}
+        </Typography>
+      )}
 
       <Box marginY={5}>
         <TextField
